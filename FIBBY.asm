@@ -17,7 +17,21 @@ include emu8086.inc
 
 org 100h
 
-jmp _main                       ; Jump Over Proc Definitions
+_main:
+  call clear_screen             ; Make Sure The Screen Is Clear If We Jump Back
+  PRINT 'Enter Number of Fibonacci Terms:'
+  call scan_num
+  cmp cx, 0                     ; Assure Our Input Is Positive (One Of Our Preconditions)
+  jl _main                      ; Ask For Input Again
+  cmp cx, 50                    ; Assure Our Input Is Less Than 50 (One Of Our Preconditions)
+  jg _main                      ; Ask For Input Again
+
+  PRINTN                        ; Print A Newline After Input
+  push cx                       ; Stick Our Count On The Stack To Pass It
+  call print_fib                ; Call Our Main Procedure
+  add sp, 2                     ; Clean Up Parameter
+  ret
+
 
 ; Prints n Fibonacci Numbers
 ; Params:
@@ -62,22 +76,6 @@ _carry:
   PRINT 'WARN: Carried: '       ; Print Warning Before The Result
   jmp _post_step                ; Jump Back
   endp
-
-_main:
-  call clear_screen             ; Make Sure The Screen Is Clear If We Jump Back
-  PRINT 'Enter Number of Fibonacci Terms:'
-  call scan_num
-  cmp cx, 0                     ; Assure Our Input Is Positive (One Of Our Preconditions)
-  jl _main                      ; Ask For Input Again
-  cmp cx, 50                    ; Assure Our Input Is Less Than 50 (One Of Our Preconditions)
-  jg _main                      ; Ask For Input Again
-
-  PRINTN                        ; Print A Newline After Input
-  push cx                       ; Stick Our Count On The Stack To Pass It
-  call print_fib                ; Call Our Main Procedure
-  add sp, 2                     ; Clean Up Parameter
-  ret
-
 DEFINE_CLEAR_SCREEN
 DEFINE_SCAN_NUM
 DEFINE_PRINT_NUM
