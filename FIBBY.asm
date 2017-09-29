@@ -1,8 +1,18 @@
 include emu8086.inc
-
-; 25 - 46368 < 65,535
-; 24 - 28,657   < 32,767
-
+; Author: Evan Black
+; Purpose: Prints 0 - 50 Fibonacci Terms Based On User Input
+;
+; Algorithm:
+;  Print Starting Terms
+;  Loop For Number of Terms User Requested:
+;    current = before last + last
+;    [Print Warning If Carried]
+;    Print current
+;    Flip current and last
+;
+; Questions:
+; N = 25 - 46,368 , It's The Largest Fibonacci Number Less Than 65,535 2^16 - 1
+; N = 24 - 28,657  It's The Largest Fibonacci Number Less Than 32,767 2^15 - 1
 
 
 org 100h
@@ -12,7 +22,7 @@ jmp _main                       ; Jump Over Proc Definitions
 ; Prints n Fibonacci Numbers
 ; Params:
 ;  [Stack] Word n: Number of Fibonacci Numbers to Print [0 - 50]
-; Registers Cleared: ax
+; Registers Cleared: ax, cx (Standard caller-clobbered)
 print_fib proc
   mov bp, sp                    ; Start Our Stack Frame
   mov cx, [bp+2]                       ; Only Param, Number of Terms
@@ -43,7 +53,7 @@ _post_step:
 
 _end_fib:
   pop bx                        ; Restore bx
-  mov sp, bp
+  mov sp, bp                    ; Close Our Stack Frame
   ret
 
 ; Print A Warning For A Carry
@@ -54,17 +64,21 @@ _carry:
   endp
 
 _main:
+  call clear_screen             ; Make Sure The Screen Is Clear If We Jump Back
   PRINT 'Enter Number of Fibonacci Terms:'
   call scan_num
+  cmp cx, 0                     ; Assure Our Input Is Positive (One Of Our Preconditions)
+  jl _main                      ; Ask For Input Again
+  cmp cx, 50                    ; Assure Our Input Is Less Than 50 (One Of Our Preconditions)
+  jg _main                      ; Ask For Input Again
 
-  PRINTN
-  push cx
-  xor cx, cx
-  call print_fib
+  PRINTN                        ; Print A Newline After Input
+  push cx                       ; Stick Our Count On The Stack To Pass It
+  call print_fib                ; Call Our Main Procedure
   add sp, 2                     ; Clean Up Parameter
   ret
 
-
+DEFINE_CLEAR_SCREEN
 DEFINE_SCAN_NUM
 DEFINE_PRINT_NUM
 DEFINE_PRINT_NUM_UNS
